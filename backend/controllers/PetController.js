@@ -81,4 +81,41 @@ module.exports = class PetControllert{
             res.status(500).json({message:error})
         }
     }
-}
+    static async getPetById(req,res){
+        const id = req.params.id
+
+
+        try {
+            const pet = await Pet.findById(id)
+
+            if (!pet) {
+              res.status(404).json({message:'Pet não encontrado!'})
+              return
+            }
+        } catch (error) {
+            res.status(500).json({message:error})
+        }
+    }
+    static async removePetById(req,res) {
+        const id = req.params.id
+        const token = getToken(req)
+        const user = await getUserByToken(token)
+        
+        try{
+            const pet = await Pet.findById(id)
+
+            if(!pet){
+                res.status(404).json({message:'Pet não encontrado'})
+                return
+            }
+            if(pet.user._id.toString() !== user._id.toString()){
+                res.status(403).json({message:'Você não tem permissão para remover este pet'})
+                return
+            }
+            await Pet.findByIdAndDelete(id)
+            res.status(200).json({message:'Pet removido com sucesso'})
+        } catch (error) {
+            res.status(500).json({message: error})
+        }
+    }
+ }
