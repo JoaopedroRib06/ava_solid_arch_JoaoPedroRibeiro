@@ -170,7 +170,109 @@ module.exports = class PetControllert{
           })
         }
       }
-    
+      static async schedule(req, res) {
+        const id = req.params.id
+      
+        const token = getToken(req)
+        const user = await getUserByToken(token)
+      
+        try {
+          const pet = await Pet.findById(id)
+      
+          if (!pet) {
+            res.status(404).json({
+              message: 'Pet não encontrado!',
+            })
+            return
+          }
+      
+          if (pet.user._id.toString() === user._id.toString()) {
+            res.status(403).json({
+              message: 'Você não pode agendar uma visita para o seu próprio pet!',
+            })
+            return
+          }
+      
+          if (!pet.available) {
+            res.status(403).json({
+              message: 'Este pet já foi adotado!',
+            })
+            return
+          }
+      
+          pet.adopter = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+          }
+      
+          await pet.save()
+      
+          res.status(200).json({
+            message:
+              'Visita agendada com sucesso! Entre em contato com o dono do pet.',
+            pet: pet,
+          })
+        } catch (error) {
+          res.status(500).json({
+            message: error,
+          })
+        }
+      }
+      
+      
+      static async concludeAdoption(req, res) {
+        const id = req.params.id
+      
+        const token = getToken(req)
+        const user = await getUserByToken(token)
+      
+        try {
+          const pet = await Pet.findById(id)
+      
+          if (!pet) {
+            res.status(404).json({
+              message: 'Pet não encontrado!',
+            })
+            return
+          }
+      
+          if (pet.user._id.toString() !== user._id.toString()) {
+            res.status(403).json({
+              message: 'Apenas o dono do pet pode concluir a adoção!',
+            })
+            return
+          }
+      
+          if (!pet.available) {
+            res.status(403).json({
+              message: 'Este pet já foi adotado!',
+            })
+            return
+          }
+      
+          if (!pet.adopter) {
+            res.status(403).json({
+              message: 'Não há um adotante agendado para este pet!',
+            })
+            return
+          }
+      
+          pet.available = false
+      
+          await pet.save()
+      
+          res.status(200).json({
+            message: 'Adoção concluída com sucesso!',
+            pet: pet,
+          })
+        } catch (error) {
+          res.status(500).json({
+            message: error,
+          })
+        }
+      }
  }
         
  
