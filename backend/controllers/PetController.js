@@ -2,7 +2,7 @@ const Pet = require('../models/Pet')
 const getUserByToken = require('../helpers/get-user-by-token')
 const getToken = require('../helpers/get-tokens')
 
-module.exports = class PetControllert{
+module.exports = class PetController{
     static async create(req,res){
         const{name, age, weight, color} = req.body
         const images = req.files
